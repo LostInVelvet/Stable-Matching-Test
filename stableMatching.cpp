@@ -9,225 +9,198 @@ const int peopleToMatch = 3;
 
 // Holds the man's order of preference of women and the link to the next man
 struct Man{
-  string myName;
-  string women[peopleToMatch];
-  bool isMatched;
-  int timesProposed;
-  string matchedTo;
+  int myName;
+  int women[peopleToMatch];
   Man *next;
 };
 
 // Has the preference list for a woman and if she is already matched along with the rank of the person she is matched to
 struct Woman{
-  string myName;
-  string men[peopleToMatch];
+  int myName;
+  int men[peopleToMatch];
   bool isMatched;
-  string matchedTo;         //holds the rank in preference that a woman is matched to
+  int matchedTo;         //holds the rank in preference that a woman is matched to
 };
 
 
 
-
-
-
-
-
-
-
 // *******************************************************************************************************
-void Init(Man *head, Woman *women, Man *end);
+void MatchPartners(Man *current, Woman *women, int *matchings);
+int Propose(int man, Woman *women, int chosenWoman);
+void InitializeAll(Man *head, Woman *women);
+void Initialize(Man *head, Woman *women, char gender, int num);
 void TestMenAndWomen(Man *head, Woman *women);
-void MatchPartners(Man *current, Woman *women, Man *end);
-bool ProposeTo(string woman, Woman *women, string man, Man *head);
-bool CompareMen(Woman *woman, string man, int womanSpot);
-void SwitchMen(Man *head, string manToAdd, string manToRemove);
+string GetName(char gender, int myName);
 // *******************************************************************************************************
-
 
 int main(){
   Woman women[peopleToMatch];
+  int matchings[peopleToMatch];
   Man *head;
-  Man *end;
-  
+  string nname;
+
   head = new Man;
 
-  Init(head, women, end);  
+   InitializeAll(head, women);
+   
 
 // Tests the names and preferences of each man/woman
-  TestMenAndWomen(head, women);
+//  TestMenAndWomen(head, women);
 
-  MatchPartners(head, women, end);
+  MatchPartners(head, women, matchings);
 
+  for(int q = 0; q <= peopleToMatch; q++){
+    nname = GetName('m', q);
+    cout << endl << nname << " ";
+    nname = GetName('w', matchings[q]);
+    cout << nname;
+  }
+  cout << endl;
   return 0;
 }
 
 
-
-void MatchPartners(Man *current, Woman *women, Man *end){
+void MatchPartners(Man *current, Woman *women, int *matchings){
   Man *next;
-  int cnt=0;		// Used to check how many men in a row are unmatched.
-  bool matched;
-  int menMatchings[peopleToMatch];  
-  int timesProposed;
+  int proposeCnt;
+  int partnerChosen;
   
-  // Loop through while adding unmatched men to the end of the list.
-  // End once the amount of people to match has been cycled through and all are matched.
-  while(cnt<peopleToMatch){
-    if(!(*current).isMatched){
-      cnt = 0;
+  while(current->next != NULL){
+    next = current->next;
 
-      // Check if the guy is unmatched
-      while(timesProposed <= peopleToMatch){
-        // Propose to the next woman
-        cout << endl << current->myName << " proposing to: " << (*current).women[(*current).timesProposed];
-        matched = ProposeTo((*current).women[(*current).timesProposed], women, (*current).myName, current);
-        // If she approves - handle it
-        if(matched){
-        cout << endl << "MATCHED!" << endl;
-          
-         /* (*current).isMatched = true;
-          (*current).matchedTo = women[(*current).timesProposed].myName;*/
-          men
-          
-        }
-        (*current).timesProposed = (*current).timesProposed + 1;
+    // Get how many times the guy has proposed
+    proposeCnt = matchings[current->myName];
+    
+    // If it's not his first time proposing - propose to the next girl
+    if(proposeCnt != 0)
+      proposeCnt++;
+    
+    // Keep proposing until matched (or running out of people to try - which shouldn't happen)
+    while(proposeCnt <= peopleToMatch){
+      partnerChosen = Propose(current->myName, women, proposeCnt);
+      
+      // If the chosen partner is of a higher number - he needs put back on the list
+      // because the girl just switched partners
+      if(partnerChosen > current->myName){
+        matchings[current->myName] = proposeCnt;
+        // Add the guy back to the list
+        Initialize(current, women, 'm', partnerChosen); 
+        current->next = next;
         break;
-      }
-    }
-    else
-      cnt++;
-  }
-}
-
-
-bool ProposeTo(string woman, Woman *women, string man, Man *head){
-  int womanSpot;
-  bool womanFound = false;
-  bool switchMen = false;
-  
-  // Find the desired woman in the array
-  for(womanSpot = 0; womanSpot < peopleToMatch; womanSpot++){
-    if(strcmp(woman.c_str(), (women[womanSpot].myName).c_str()) == 0){
-      womanFound = true;
-      break;
-      }
-  }
-  if(womanFound){
-    if(women[womanSpot].isMatched == false){
-      women[womanSpot].isMatched = true;
-      women[womanSpot].matchedTo = man;
-      return true;
-    }
-    else{
-      switchMen = CompareMen(women, man, womanSpot);
-      if(switchMen){
-// Dump Current Guy (switch his and her matched status)
-        SwitchMen(head, man, women[womanSpot].matchedTo);
-      }
-    }  
-  }
-  return switchMen;
-}
-
-
-
-// Changes a man's matched status once broken up with
-void SwitchMen(Man *head, string manToAdd, string manToRemove){
-  Man *current;
-  
-  current = head;
-  
-  for(int i = 0; i < peopleToMatch; i++){
-     if(strcmp(manToRemove.c_str(), ((*current).myName).c_str() ) == 0){
-       current->isMatched = false;
-       current->matchedTo = "----";
-     }
-     else
-       current = current->next;
-  }
-}
-
-
-
-bool CompareMen(Woman *woman, string man, int womanSpot){
-  // Find the guy proposing or the current match
-  for(int i = 0; i < peopleToMatch; i++){
-    if(strcmp((woman[womanSpot].men[i]).c_str(), (woman[womanSpot].matchedTo).c_str()) == 0)
-      return false;
-    else if(strcmp((woman[womanSpot].men[i]).c_str(), man.c_str()) == 0){
-      return true;
+      }    
     }
   }
 }
 
+int Propose(int man, Woman *women, int chosenWoman){
+  // Woman is unmatched
+  if(!(women[chosenWoman].isMatched))
+    return 0;
+  
+  // Woman prefers the new man
+  else if(man < women[chosenWoman].matchedTo)
+    return women[chosenWoman].matchedTo;
+    
+  // Woman prefers her current man
+  else
+    return -1;
+}
 
+
+void InitializeAll(Man *head, Woman *women){
+  Man *tmp;
+  Man *next;
+  
+  
+  next = head;  
+                
+  // Initialize all men
+  for(int i = 0; i<peopleToMatch; i++){
+   cout << endl << "started" ;
+   Initialize(next, women, 'm', i);
+   if(i < peopleToMatch-1)
+     next = next->next;
+   cout << endl << "man " << next->myName << " " << next->women[1] << next->women[2] << next->women[3];
+  }
+  
+  next->next = NULL;
+  
+  // Get rid of the first once since it is empty
+  tmp = head->next;
+  delete head;
+  head = tmp;
+  
+  // Initialize all women
+  for(int i = 0; i<peopleToMatch; i++)
+    Initialize(next, women, 'f', i);                 
+
+}
 
 // Sets up the array of women and the linked list of Men and fills their preferences and matched status
-void Init(Man *head, Woman *women, Man *end){
+void Initialize(Man *head, Woman *women, char gender, int num){
 
 // These are a list of 5 names to use separated into 3 names and 5 names.
 // Women:  Amy Betty Carla    -    Daphne Ella
 // Men:    Adam Bert Caleb    -    David Elliot
 
-  Man *current;
-  Man *next;
-  
-  current = head;
-  
-  // Set up the men's preferences
-  current->myName = "Adam";  
-  current->women[0] = "Amy"  ;
-  current->women[1] = "Carla";
-  current->women[2] = "Betty";
-  current->isMatched = false;
-  current->timesProposed = 0;
+  switch(gender){
+  case 'm':
+    Man *current;
 
-  next = new Man;
-  next->myName = "Bert";
-  next->women[0] = "Carla";
-  next->women[1] = "Amy";
-  next->women[2] = "Betty";
-  next->isMatched = false;
-  next->timesProposed = 0;
-  current->next = next;
-  current = next;
+    current = head;
 
-  next = new Man;
-  next->myName = "Caleb";
-  next->women[0] = "Carla";
-  next->women[1] = "Betty";
-  next->women[2] = "Amy";
-  next->isMatched = false;
-  next->timesProposed = 0;
-  current->next = next;
-  current = next;
+    // Set up the men's preferences
+      current = new Man;
+      head->next = current;
 
-  // Ends the linked list of Men
-  next->next = NULL;
-  end = next;
-  
+    if(num == 0){
+      cout << endl << "one";
+      current->myName = 1;
+      current->women[0] = 1;
+      current->women[1] = 3;
+      current->women[2] = 2;
+    }
+    else if(num == 1){
+    cout << endl << "two";
+      current->myName = 2;
+      current->women[0] = 3;
+      current->women[1] = 1;
+      current->women[2] = 2;
+    }
+
+    else if(num == 2){
+    cout << endl << "three";
+      current->myName = 3;
+      current->women[0] = 3;
+      current->women[1] = 2;
+      current->women[2] = 1;
+    }
+    break;
   // Set up the women's preferences
-  women[0].myName = "Amy";
-  women[0].men[0] = "Caleb";
-  women[0].men[1] = "Adam";
-  women[0].men[2] = "Bert";
-  women[0].isMatched = false;
-  
-
-  women[1].myName = "Betty";
-  women[1].men[0] = "Caleb";
-  women[1].men[1] = "Bert";
-  women[1].men[2] = "Adam";
-  women[1].isMatched = false;
-
-  women[2].myName = "Carla";
-  women[2].men[0] = "Bert";
-  women[2].men[1] = "Caleb";
-  women[2].men[2] = "Adam";
-  women[2].isMatched = false;
-  
+  case 'f':
+    if(num == 0){
+      women[0].myName = 1;
+      women[0].men[0] = 3;
+      women[0].men[1] = 1;
+      women[0].men[2] = 2;
+      women[0].isMatched = false;
+    }      
+    else if(num == 1){
+      women[1].myName = 2;
+      women[1].men[0] = 3;
+      women[1].men[1] = 2;
+      women[1].men[2] = 1;
+      women[1].isMatched = false;
+    }
+    else if(num == 2){
+      women[2].myName = 3;
+      women[2].men[0] = 2;
+      women[2].men[1] = 3;
+      women[2].men[2] = 1;
+      women[2].isMatched = false;
+    }
+  }
 }
-
 
 
 // This function outputs the names and preferences for each man and each woman.
@@ -235,18 +208,29 @@ void Init(Man *head, Woman *women, Man *end){
 void TestMenAndWomen(Man *head, Woman *women){
   Man *current;
   Man *next;
-  
+
   current = head;
-  
+
+  // Loop through Men
+  cout << endl << "MEN: " << endl << endl;
+  for( int j = 0; j<peopleToMatch; j++){
+    cout << "My Name Is: " << GetName('m', j)  << endl
+         << "\tMy preference order of women are: " << endl;
+    for(int i = 0; i<peopleToMatch; i++){
+      cout << "\t" << i+1 << ")  " << GetName('w', current->women[i]) << endl;
+    }
+    current = current->next;
+  }
+/*
   // Loop through Men.
   cout << endl << "MEN: " << endl << endl;
   for( int j = 0; j<peopleToMatch; j++){
-    cout << "My Name Is: " << (*current).myName << endl
+    cout << "My Name Is: " << GetName('m', j)  << endl
          << "\tMy preference order of women are: " << endl;
-    
+
     // Loop through Preferences
     for(int k = 0; k<peopleToMatch; k++){
-        cout << "\t" << k+1 << ")  " << (*current).women[k] << endl;
+        cout << "\t" << k+1 << ")  " << GetName('w', current->women[k]) << endl;
       }
     cout << endl;
     current = current->next;
@@ -259,11 +243,24 @@ void TestMenAndWomen(Man *head, Woman *women){
   for(int i = 0; i<peopleToMatch; i++){
     cout << "My Name Is: " << women[i].myName << endl
          << "\tMy preference order for men are: " << endl;
-    
+
     // Loop through Preferences
     for(int j = 0; j<peopleToMatch; j++){
       cout << "\t" << j+1 << ")  " << women[i].men[j] << endl;
     }
     cout << endl;
-  }
+  }*/
+}
+
+
+
+string GetName(char gender, int myName){
+  string men[peopleToMatch] = {"Adam", "Bert", "Caleb"};
+  string women[peopleToMatch] = {"Amy", "Beth", "Carla"};
+
+  if(gender == 'm')
+    return men[myName];
+  else
+    return women[myName];
+
 }
