@@ -67,7 +67,8 @@ void MatchPartners(Man *current, Woman *women, Man *end){
   Man *next;
   int cnt=0;		// Used to check how many men in a row are unmatched.
   bool matched;
-  
+  int menMatchings[peopleToMatch];  
+  int timesProposed;
   
   // Loop through while adding unmatched men to the end of the list.
   // End once the amount of people to match has been cycled through and all are matched.
@@ -76,27 +77,17 @@ void MatchPartners(Man *current, Woman *women, Man *end){
       cnt = 0;
 
       // Check if the guy is unmatched
-      while(!(*current).isMatched || (*current).timesProposed <= peopleToMatch){
+      while(timesProposed <= peopleToMatch){
         // Propose to the next woman
         cout << endl << current->myName << " proposing to: " << (*current).women[(*current).timesProposed];
         matched = ProposeTo((*current).women[(*current).timesProposed], women, (*current).myName, current);
         // If she approves - handle it
         if(matched){
         cout << endl << "MATCHED!" << endl;
-          (*current).isMatched = true;
-          (*current).matchedTo = women[(*current).timesProposed].myName;
-
-          // Look at the next guy
-          next = current->next;
-
-          // Move Guy to the end of the list          
-          end->next = current;
-          current->next = NULL;
-
-          end = current;
           
-          // Look at the front of the list
-          current = next;
+         /* (*current).isMatched = true;
+          (*current).matchedTo = women[(*current).timesProposed].myName;*/
+          men
           
         }
         (*current).timesProposed = (*current).timesProposed + 1;
