@@ -9,15 +9,20 @@ const int peopleToMatch = 3;
 struct Woman;
 class Man;
 
-void CreateListOfMen(Man * & head);
+//void CreateListOfMen(Man * & head);
 void InitializeMan(Man *head, int num);
-void InitializeWomen(Woman *women);
-void MatchPartners(Man * & head, Woman *women, int *matchings);
+//void InitializeWomen(Woman *women);
+//void MatchPartners(Man * & head, Woman *women, int *matchings);
+//int Propose(Man * & head, Woman *women, int womanNum);
+//void SwitchMen(Man * & head, Woman *women, int womanNum, int *matchings, int loser);
+//string GetName(char gender, int myName);
+
+void HandleInput(int *menPreferences, Woman *women, string *names, const int peopleToMatch);
+void CreatePeople(int *menPreferences, Woman *women, string *names, const int peopleToMatch);
+void MatchPartners(Man * & head, Woman *women, int *matchings, const int peopleToMatch);
 int Propose(Man * & head, Woman *women, int womanNum);
 void SwitchMen(Man * & head, Woman *women, int womanNum, int *matchings, int loser);
-string GetName(char gender, int myName);
-void PrintPreferences(Man *head, Woman *women);
-void PrintMatched(const int *matchings);
+
 // ***********************************************************************
 
 
@@ -92,22 +97,25 @@ void Man::delete_man(Man * & head){
 
 
 int main(){
+//  int matchings[peopleToMatch];
+//  Woman women[peopleToMatch];
+//  Man *head = NULL;
+  
+  //CreateListOfMen(head);
+  //InitializeWomen(women);
+  //MatchPartners(head, women, matchings);
 
-cout << endl << endl;
-
-  int matchings[peopleToMatch];		// matchings[guy] = woman
-  Woman women[peopleToMatch];
+  int numPeople;
+  cin >> numPeople;
+  
   Man *head = NULL;
+  Woman women[numPeople];
+  int menPreferences[numPeople];
+  string names[numPeople];
   
-  
-  CreateListOfMen(head);
-  InitializeWomen(women);
-  PrintPreferences(head, women);
+  HandleInput(menPreferences, women, names, numPeople);
 
-  MatchPartners(head, women, matchings);
 
-  PrintMatched(matchings);
-  
   cout << endl << endl;
   return 0;
 }
@@ -141,24 +149,28 @@ void CreateListOfMen(Man * & head){
 
 // Fills in a man's number and his preference for women
 void InitializeMan(Man *head, int num){
+  
+
+
+/*
    if(num == 0){
     head->myNum = 0;
-    head->women[0] = 0;
-    head->women[1] = 1;
+    head->women[0] = 1;
+    head->women[1] = 0;
     head->women[2] = 2;
   }
   else if(num == 1){
     head->myNum = 1;
     head->women[0] = 0;
-    head->women[1] = 2;
-    head->women[2] = 1;
+    head->women[1] = 1;
+    head->women[2] = 2;
   }
   else if(num == 2){
     head->myNum = 2;
     head->women[0] = 0;
     head->women[1] = 2;
     head->women[2] = 1;
-  }
+  }*/
 }
 
 
@@ -169,15 +181,15 @@ void InitializeMan(Man *head, int num){
 void InitializeWomen(Woman *women){
 
   women[0].myNum = 0;
-  women[0].men[0] = 1;
+  women[0].men[0] = 0;
   women[0].men[1] = 1;
   women[0].men[2] = 2;
   women[0].isMatched = false;
 
   women[1].myNum = 1;
-  women[1].men[0] = 1;
+  women[1].men[0] = 0;
   women[1].men[1] = 2;
-  women[1].men[2] = 0;
+  women[1].men[2] = 1;
   women[1].isMatched = false;
 
   
@@ -198,7 +210,7 @@ void InitializeWomen(Woman *women){
 
 
 
-void MatchPartners(Man * & head, Woman *women, int *matchings){
+void MatchPartners(Man * & head, Woman *women, int *matchings, const int peopleToMatch){
   int loser;
   int proposeCnts[peopleToMatch];	// Holds the number of times each guy has proposed
   
@@ -213,11 +225,10 @@ void MatchPartners(Man * & head, Woman *women, int *matchings){
       loser = Propose(head, women, head->women[i]);
       proposeCnts[head->myNum] = proposeCnts[head->myNum] + 1;
 
-///*****/      cout << endl << "Man " << head->myNum << " asks " << head->women[i];
       
       // If she's unmatched (-1), delete myself then break me out of the loop
       if(loser == -1){
-///*****/        cout << endl << "Won by default - Man " << head->myNum << " asks " << head->women[i];
+//***        cout << endl << "Won by default - Man " << head->myNum << " asks " << head->women[i];
         matchings[head->myNum] = head->women[i];
         head->delete_man(head);
         break;
@@ -227,11 +238,10 @@ void MatchPartners(Man * & head, Woman *women, int *matchings){
       else if(loser != head->myNum){
         // If I'm not the looser, switch my partners, delete myself, and add the loser back to the list
         SwitchMen(head, women, head->women[i], matchings, loser);
-        matchings[head->myNum] = head->women[i];
         
-///*****/        cout << endl <<  "Deleting Winner " << head << " - Man " << head->myNum << "  - Woman " << head->women[i];
+//***        cout << endl <<  "Deleting Winner " << head << " - Man " << head->myNum << "  - Woman " << head->women[i];
         head->delete_man(head);
-///*****/        cout << endl << "New Man Added " << loser << " " << head << endl;
+//***        cout << endl << "New Man Added " << loser << " " << head << endl;
         head->add_man(head, loser);
         break;
       }
@@ -285,6 +295,53 @@ void SwitchMen(Man * & head, Woman *women, int womanNum, int *matchings, int los
 
 // ***********************************************************************
 //
+//				Input
+//
+// ***********************************************************************
+// File has to be formated as
+  // Number of people	(which is handled in main)
+  // Each man's name followed by woman number preference
+  // Each woman's name followed by man number preference
+// Returns the number of people
+void HandleInput(int *menPreferences, Woman *women, string *names, const int peopleToMatch){
+  CreatePeople(menPreferences, women, names, peopleToMatch);    
+}
+
+// ***********************************************************************
+
+
+// Creates the list of men, women, and the array of their names
+void CreatePeople(int *menPreferences, Woman *women, string *names, const int peopleToMatch){
+  int womanPrefered;
+  int manPrefered;
+  string myName;
+
+  // Men Creation
+  for(int i = 0; i < peopleToMatch; i++){
+    cin >> myName;
+    names[0][i] = myName.c_str();
+
+    for(int j = 0; j < peopleToMatch; j++){
+      cin >> womanPrefered;
+      menPreferences[i] = womanPrefered;
+
+  }
+
+  // Women Creation
+  for(int i = 0; i < peopleToMatch; i++){
+    women[i].myNum = i;
+    cin >> myName;
+    names[1][i] = myName;
+    
+    for(int j = 0; j < peopleToMatch; j++){
+      cin >> manPrefered;
+      women[i].men[j] = manPrefered;
+    }
+  }
+}
+
+// ***********************************************************************
+//
 //			Name/Number Conversion
 //
 // ***********************************************************************
@@ -307,86 +364,5 @@ string GetName(char gender, int myName){
     return men[myName];
   else
     return women[myName];
-
-}
-
-
-// ***********************************************************************
-//
-//				Print
-//
-// ***********************************************************************
-void PrintPreferences(Man *head, Woman *women){
-  Man *temp;
-  
-  temp = head;
-  
-  cout << endl << "Preference Order: " << endl
-       << "\tMen:";
-  while(temp != NULL){
-    
-    cout << endl << "\t" << temp->myNum << ") ";
-    for(int j = 0; j<peopleToMatch; j++){
-       cout << temp->women[j] << " "; 
-    }
-    temp = temp->next;
-  }
-  
-  cout << endl << endl << "\tWomen:";
-  for(int i = 0; i<peopleToMatch; i++){
-    cout << endl << "\t" << i << ") ";
-    for(int j = 0; j<peopleToMatch; j++){
-      cout << women[i].men[j] << " ";
-    }
-  }  
-}
-
-
-// ***********************************************************************
-
-
-void PrintMatched(const int *matchings){
-  cout << endl << endl;
-
-  cout << "Names of Men: " << endl;
-  for(int i = 0; i < peopleToMatch; i++){
-    cout << i << ") " << GetName('m', i) << endl;
-  }
-  
-  cout << endl << endl << "Names of Women: " << endl;
-  for(int i = 0; i < peopleToMatch; i++){
-    cout << i << ") " << GetName('f', i) << endl;
-  }
-
-  
-
-  cout << endl << endl << "After Matchings:" << endl << endl;
-  
-  cout << "\t    Women" << endl
-       << "\t    0   1   2" << endl << "\t   ";
-      
-  for(int i = 0; i<peopleToMatch; i++)
-    cout << "--- "; 
-    
-  cout << endl <<  "Men\t";
-  for(int i = 0; i<peopleToMatch; i++){
-    cout << i << " |";
-    for(int j = 0; j<peopleToMatch; j++){
-        
-      if(matchings[j] == i){
-        cout << " x |";
-      } else{
-        cout << "   |";    
-      }
-    }
-      cout << endl << "\t";
-  }
-    
-  cout << endl << endl;
-  for(int i = 0; i<peopleToMatch; i++)
-    cout << GetName('m', i) << " is matched with " << GetName('f', matchings[i]) << endl;
-
-  cout << endl;
-
 
 }
